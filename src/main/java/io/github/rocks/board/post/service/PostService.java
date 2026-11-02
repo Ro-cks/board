@@ -2,6 +2,7 @@ package io.github.rocks.board.post.service;
 
 import io.github.rocks.board.post.dto.PostCreateRequest;
 import io.github.rocks.board.post.dto.PostResponse;
+import io.github.rocks.board.post.dto.PostUpdateRequest;
 import io.github.rocks.board.post.entity.Post;
 import io.github.rocks.board.post.exception.PostNotFoundException;
 import io.github.rocks.board.post.repository.PostRepository;
@@ -38,5 +39,15 @@ public class PostService {
                 .orElseThrow(() -> new PostNotFoundException(id));
 
         postRepository.delete(post);
+    }
+
+    @Transactional
+    public PostResponse update(Long id, PostUpdateRequest request) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new PostNotFoundException(id));
+
+        post.update(request.title(), request.content());
+
+        return PostResponse.from(post);
     }
 }

@@ -2,6 +2,7 @@ package io.github.rocks.board.post.controller;
 
 import io.github.rocks.board.post.dto.PostCreateRequest;
 import io.github.rocks.board.post.dto.PostResponse;
+import io.github.rocks.board.post.dto.PostUpdateRequest;
 import io.github.rocks.board.post.service.PostService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -37,5 +38,13 @@ public class PostController {
         postService.deleteById(id);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<PostResponse> update(
+            @PathVariable Long id,
+            @Valid @RequestBody PostUpdateRequest request
+    ) {
+        return ResponseEntity.ok(postService.update(id, request));
     }
 }
