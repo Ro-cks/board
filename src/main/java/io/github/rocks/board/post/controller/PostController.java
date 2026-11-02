@@ -31,4 +31,11 @@ public class PostController {
     public ResponseEntity<PostResponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok(postService.findById(id));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteById(@PathVariable Long id) {
+        postService.deleteById(id);
+
+        return ResponseEntity.noContent().build();
+    }
 }
