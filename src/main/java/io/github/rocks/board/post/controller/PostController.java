@@ -1,5 +1,6 @@
 package io.github.rocks.board.post.controller;
 
+import io.github.rocks.board.common.dto.PageResponse;
 import io.github.rocks.board.post.dto.PostCreateRequest;
 import io.github.rocks.board.post.dto.PostResponse;
 import io.github.rocks.board.post.dto.PostSummaryResponse;
@@ -54,9 +55,11 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<PostSummaryResponse>> findAll(
+    public ResponseEntity<PageResponse<PostSummaryResponse>> findAll(
             @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        return ResponseEntity.ok(postService.findAll(pageable));
+        Page<PostSummaryResponse> page = postService.findAll(pageable);
+        PageResponse<PostSummaryResponse> response = PageResponse.from(page);
+        return ResponseEntity.ok(response);
     }
 }

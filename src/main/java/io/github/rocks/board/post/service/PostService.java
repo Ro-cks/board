@@ -56,6 +56,7 @@ public class PostService {
 
     @Transactional(readOnly = true)
     public Page<PostSummaryResponse> findAll(Pageable pageable) {
+
         return postRepository.findAll(pageable)
                 .map(PostSummaryResponse::from);
     }
