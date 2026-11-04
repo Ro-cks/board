@@ -2,10 +2,13 @@ package io.github.rocks.board.post.service;
 
 import io.github.rocks.board.post.dto.PostCreateRequest;
 import io.github.rocks.board.post.dto.PostResponse;
+import io.github.rocks.board.post.dto.PostSummaryResponse;
 import io.github.rocks.board.post.dto.PostUpdateRequest;
 import io.github.rocks.board.post.entity.Post;
 import io.github.rocks.board.post.exception.PostNotFoundException;
 import io.github.rocks.board.post.repository.PostRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,5 +52,11 @@ public class PostService {
         post.update(request.title(), request.content());
 
         return PostResponse.from(post);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<PostSummaryResponse> findAll(Pageable pageable) {
+        return postRepository.findAll(pageable)
+                .map(PostSummaryResponse::from);
     }
 }

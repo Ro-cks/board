@@ -2,9 +2,14 @@ package io.github.rocks.board.post.controller;
 
 import io.github.rocks.board.post.dto.PostCreateRequest;
 import io.github.rocks.board.post.dto.PostResponse;
+import io.github.rocks.board.post.dto.PostSummaryResponse;
 import io.github.rocks.board.post.dto.PostUpdateRequest;
 import io.github.rocks.board.post.service.PostService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,5 +51,12 @@ public class PostController {
             @Valid @RequestBody PostUpdateRequest request
     ) {
         return ResponseEntity.ok(postService.update(id, request));
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<PostSummaryResponse>> findAll(
+            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        return ResponseEntity.ok(postService.findAll(pageable));
     }
 }
