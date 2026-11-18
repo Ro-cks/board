@@ -1,10 +1,7 @@
 package io.github.rocks.board.post.controller;
 
 import io.github.rocks.board.common.dto.PageResponse;
-import io.github.rocks.board.post.dto.PostCreateRequest;
-import io.github.rocks.board.post.dto.PostResponse;
-import io.github.rocks.board.post.dto.PostSummaryResponse;
-import io.github.rocks.board.post.dto.PostUpdateRequest;
+import io.github.rocks.board.post.dto.*;
 import io.github.rocks.board.post.service.PostService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -56,9 +53,11 @@ public class PostController {
 
     @GetMapping
     public ResponseEntity<PageResponse<PostSummaryResponse>> findAll(
+            @RequestParam(defaultValue = "ALL") PostSearchType type,
+            @RequestParam(required = false) String keyword,
             @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Page<PostSummaryResponse> page = postService.findAll(pageable);
+        Page<PostSummaryResponse> page = postService.findAll(type, keyword, pageable);
         PageResponse<PostSummaryResponse> response = PageResponse.from(page);
         return ResponseEntity.ok(response);
     }
