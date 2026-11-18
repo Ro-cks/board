@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>게시판</title>
+    <style>
+        :root {
+            --bg: #f6f7f9;
+            --card: #ffffff;
+            --text: #1f2328;
+            --muted: #6b7280;
+            --line: #e5e7eb;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --danger: #dc2626;
+            --row-hover: #f3f4f6;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #111318;
+                --card: #1a1d24;
+                --text: #e6e8eb;
+                --muted: #9aa1ab;
+                --line: #2c313a;
+                --primary: #3b82f6;
+                --primary-hover: #60a5fa;
+                --danger: #f87171;
+                --row-hover: #222631;
+            }
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: system-ui, -apple-system, "Segoe UI", "Malgun Gothic", sans-serif;
+            line-height: 1.5;
+        }
+        a { color: inherit; text-decoration: none; }
+
+        header {
+            background: var(--card);
+            border-bottom: 1px solid var(--line);
+        }
+        header .inner, main {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+        header .inner { height: 56px; display: flex; align-items: center; }
+        header .logo { font-weight: 700; font-size: 18px; }
+        main { padding-top: 24px; padding-bottom: 48px; }
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .toolbar h1 { margin: 0; font-size: 22px; }
+        .toolbar .spacer { flex: 1; }
+        .muted { color: var(--muted); font-size: 14px; }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+        th, td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--line);
+            text-align: left;
+            font-size: 15px;
+        }
+        th { color: var(--muted); font-weight: 600; font-size: 13px; }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr:hover { background: var(--row-hover); }
+        td.num { width: 64px; color: var(--muted); }
+        td.title a { display: block; font-weight: 500; }
+        td.title a:hover { color: var(--primary); }
+        td.author { width: 120px; }
+        td.date { width: 150px; color: var(--muted); font-size: 14px; }
+
+        .empty, .message { padding: 48px 16px; text-align: center; color: var(--muted); }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            margin-top: 20px;
+        }
+        .page {
+            min-width: 36px;
+            height: 36px;
+            padding: 0 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        a.page:hover { background: var(--row-hover); }
+        .page.current { background: var(--primary); color: #fff; font-weight: 600; }
+        .page.disabled { color: var(--muted); opacity: 0.5; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            height: 38px;
+            padding: 0 16px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--card);
+            color: var(--text);
+            font: inherit;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .btn:hover { background: var(--row-hover); }
+        .btn.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+        .btn.primary:hover { background: var(--primary-hover); }
+        .btn.danger { color: var(--danger); }
+        .btn:disabled { opacity: 0.6; cursor: default; }
+
+        article.card { padding: 24px; }
+        article h1 { margin: 0 0 8px; font-size: 24px; word-break: break-word; }
+        article .meta {
+            color: var(--muted);
+            font-size: 14px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--line);
+        }
+        article .content {
+            padding-top: 16px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            min-height: 120px;
+        }
+
+        .actions { display: flex; gap: 8px; margin-top: 16px; }
+        .actions .spacer { flex: 1; }
+
+        form.card { padding: 24px; display: grid; gap: 16px; }
+        label { display: grid; gap: 6px; font-size: 14px; font-weight: 600; }
+        input, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--bg);
+            color: var(--text);
+            font: inherit;
+            font-weight: 400;
+        }
+        input:focus, textarea:focus { outline: 2px solid var(--primary); outline-offset: -1px; }
+        input:disabled { opacity: 0.6; }
+        textarea { resize: vertical; min-height: 240px; }
+        .form-error { margin: 0; color: var(--danger); font-size: 14px; min-height: 1em; }
+
+        .search {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .segmented {
+            display: inline-flex;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--card);
+        }
+        .segmented label { position: relative; display: flex; margin: 0; font-weight: 500; }
+        .segmented input {
+            position: absolute;
+            opacity: 0;
+            width: 1px;
+            height: 1px;
+            pointer-events: none;
+        }
+        .segmented span {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 38px;
+            padding: 0 14px;
+            font-size: 14px;
+            color: var(--muted);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .segmented label + label span { border-left: 1px solid var(--line); }
+        .segmented input:checked + span { background: var(--primary); color: #fff; }
+        .segmented input:focus-visible + span { outline: 2px solid var(--primary); outline-offset: -2px; }
+        .search .keyword { flex: 1; min-width: 180px; height: 38px; padding: 0 12px; }
+
+        @media (max-width: 560px) {
+            .segmented { width: 100%; }
+            .segmented label { flex: 1; }
+        }
+
+        @media (max-width: 560px) {
+            td.num, th.num, td.date, th.date { display: none; }
+            td.author { width: 90px; }
+            article.card, form.card { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div class="inner"><a class="logo" href="#/">게시판</a></div>
+</header>
+<main id="app"></main>
+
+<script>
+    const API = '/api/posts';
+    const PAGE_SIZE = 10;
+    const app = document.getElementById('app');
+
+    // ---------- API 요청 ----------
+    async function request(url, options = {}) {
+        let res;
+        try {
+            res = await fetch(url, {
+                headers: { 'Content-Type': 'application/json' },
+                ...options,
+            });
+        } catch {
+            throw new Error('서버에 연결할 수 없습니다. 앱이 실행 중인지 확인하세요.');
+        }
+
+        if (res.status === 204) return null;
+
+        const data = await res.json().catch(() => null);
+        if (!res.ok) {
+            // 백엔드의 ErrorResponse { status, message } 형식을 그대로 사용
+            throw new Error(data?.message || `요청에 실패했습니다. (HTTP ${res.status})`);
+        }
+        return data;
+    }
+
+    // ---------- 화면 유틸 ----------
+    // 사용자 입력은 textContent로만 넣어 XSS를 막습니다.
+    function el(tag, attrs = {}, ...children) {
+        const node = document.createElement(tag);
+        for (const [key, value] of Object.entries(attrs)) {
+            if (key.startsWith('on')) node.addEventListener(key.slice(2), value);
+            else if (key === 'class') node.className = value;
+            else node.setAttribute(key, value);
+        }
+        node.append(...children.flat().filter((c) => c !== null && c !== undefined && c !== false));
+        return node;
+    }
+
+    function show(...nodes) {
+        app.replaceChildren(...nodes.filter(Boolean));
+        window.scrollTo(0, 0);
+    }
+
+    function go(path) {
+        location.hash = path;
+    }
+
+    function formatDate(value) {
+        // "2026-11-04T19:43:45.199534" → "2026-11-04 19:43"
+        return value ? value.slice(0, 16).replace('T', ' ') : '';
+    }
+
+    function loading() {
+        return el('p', { class: 'message' }, '불러오는 중...');
+    }
+
+    function showError(error) {
+        show(
+            el('div', { class: 'card message' },
+                el('p', {}, error.message),
+                el('a', { class: 'btn', href: '#/' }, '목록으로'))
+        );
+    }
+
+    // ---------- 검색 ----------
+    const SEARCH_TYPES = [
+        ['ALL', '제목+내용'],
+        ['TITLE', '제목'],
+        ['CONTENT', '내용'],
+    ];
+
+    // 목록 화면의 주소 만들기: #/?page=1&type=TITLE&keyword=spring
+    function listHash({ page = 0, type = 'ALL', keyword = '' }) {
+        const params = new URLSearchParams();
+        if (page > 0) params.set('page', page);
+        if (keyword) {
+            params.set('type', type);
+            params.set('keyword', keyword);
+        }
+        const query = params.toString();
+        return query ? `#/?${query}` : '#/';
+    }
+
+    function searchForm(type, keyword) {
+        const input = el('input', {
+            class: 'keyword',
+            type: 'search',
+            name: 'keyword',
+            placeholder: '검색어를 입력하세요',
+            maxlength: '100',
+            'aria-label': '검색어',
+        });
+        input.value = keyword;
+
+        const toggle = el('div', { class: 'segmented', role: 'radiogroup', 'aria-label': '검색 기준' },
+            SEARCH_TYPES.map(([value, label]) => {
+                const radio = el('input', { type: 'radio', name: 'type', value });
+                radio.checked = value === type;
+                return el('label', {}, radio, el('span', {}, label));
+            }));
+
+        const form = el('form', { class: 'search', role: 'search' },
+            toggle,
+            input,
+            el('button', { class: 'btn primary', type: 'submit' }, '검색'),
+            keyword ? el('a', { class: 'btn', href: '#/' }, '초기화') : null);
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const selected = form.querySelector('input[name="type"]:checked').value;
+            const next = listHash({ type: selected, keyword: input.value.trim() });
+            if (location.hash === next) route();
+            else location.hash = next;
+        });
+
+        // 검색어가 있으면 토글만 바꿔도 바로 다시 검색
+        form.addEventListener('change', (event) => {
+            if (event.target.name === 'type' && input.value.trim()) form.requestSubmit();
+        });
+
+        return form;
+    }
+
+    // ---------- 목록 ----------
+    async function renderList({ page, type, keyword }) {
+        show(loading());
+        try {
+            const params = new URLSearchParams({ page, size: PAGE_SIZE });
+            if (keyword) {
+                params.set('type', type);
+                params.set('keyword', keyword);
+            }
+            const data = await request(`${API}?${params}`);
+            const emptyText = keyword
+                ? `"${keyword}" 검색 결과가 없습니다.`
+                : '아직 게시글이 없습니다.';
+
+            const body = data.content.length
+                ? el('div', { class: 'card' },
+                    el('table', {},
+                        el('thead', {},
+                            el('tr', {},
+                                el('th', { class: 'num' }, '번호'),
+                                el('th', {}, '제목'),
+                                el('th', {}, '작성자'),
+                                el('th', { class: 'date' }, '작성일'))),
+                        el('tbody', {},
+                            data.content.map((post) =>
+                                el('tr', {},
+                                    el('td', { class: 'num' }, String(post.id)),
+                                    el('td', { class: 'title' }, el('a', { href: `#/posts/${post.id}` }, post.title)),
+                                    el('td', { class: 'author' }, post.author),
+                                    el('td', { class: 'date' }, formatDate(post.createdAt)))))))
+                : el('div', { class: 'card empty' }, emptyText);
+
+            show(
+                el('div', { class: 'toolbar' },
+                    el('h1', {}, '게시글'),
+                    el('span', { class: 'muted' },
+                        keyword ? `검색 결과 ${data.totalElements}개` : `전체 ${data.totalElements}개`),
+                    el('span', { class: 'spacer' }),
+                    el('a', { class: 'btn primary', href: '#/new' }, '글쓰기')),
+                searchForm(type, keyword),
+                body,
+                pagination(data, type, keyword)
+            );
+        } catch (error) {
+            showError(error);
+        }
+    }
+
+    function pagination({ page, totalPages }, type, keyword) {
+        if (totalPages <= 1) return null;
+
+        const start = Math.max(0, Math.min(page - 2, totalPages - 5));
+        const end = Math.min(totalPages, start + 5);
+        const link = (label, target, disabled, current = false) => {
+            if (current) return el('span', { class: 'page current', 'aria-current': 'page' }, label);
+            if (disabled) return el('span', { class: 'page disabled' }, label);
+            return el('a', { class: 'page', href: listHash({ page: target, type, keyword }) }, label);
+        };
+
+        const nav = el('nav', { class: 'pagination', 'aria-label': '페이지' });
+        nav.append(link('이전', page - 1, page === 0));
+        for (let i = start; i < end; i++) {
+            nav.append(link(String(i + 1), i, false, i === page));
+        }
+        nav.append(link('다음', page + 1, page >= totalPages - 1));
+        return nav;
+    }
+
+    // ---------- 상세 ----------
+    async function renderDetail(id) {
+        show(loading());
+        try {
+            const post = await request(`${API}/${id}`);
+
+            let meta = `${post.author} · 작성 ${formatDate(post.createdAt)}`;
+            if (post.updatedAt !== post.createdAt) {
+                meta += ` · 수정 ${formatDate(post.updatedAt)}`;
+            }
+
+            show(
+                el('article', { class: 'card' },
+                    el('h1', {}, post.title),
+                    el('div', { class: 'meta' }, meta),
+                    el('div', { class: 'content' }, post.content)),
+                el('div', { class: 'actions' },
+                    el('a', { class: 'btn', href: '#/' }, '목록'),
+                    el('span', { class: 'spacer' }),
+                    el('a', { class: 'btn', href: `#/posts/${id}/edit` }, '수정'),
+                    el('button', { class: 'btn danger', type: 'button', onclick: () => removePost(id) }, '삭제'))
+            );
+        } catch (error) {
+            showError(error);
+        }
+    }
+
+    async function removePost(id) {
+        if (!confirm('이 게시글을 삭제할까요?')) return;
+        try {
+            await request(`${API}/${id}`, { method: 'DELETE' });
+            go('/');
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+
+    // ---------- 작성 / 수정 ----------
+    async function renderForm(id) {
+        const editing = id !== undefined;
+        let post = { title: '', content: '', author: '' };
+
+        if (editing) {
+            show(loading());
+            try {
+                post = await request(`${API}/${id}`);
+            } catch (error) {
+                return showError(error);
+            }
+        }
+
+        const title = el('input', { name: 'title', maxlength: '100', required: '' });
+        title.value = post.title;
+
+        const author = el('input', { name: 'author', maxlength: '50', required: '' });
+        author.value = post.author;
+        author.disabled = editing; // 작성자는 수정할 수 없음
+
+        const content = el('textarea', { name: 'content', required: '' });
+        content.value = post.content;
+
+        const errorBox = el('p', { class: 'form-error', role: 'alert' });
+        const submit = el('button', { class: 'btn primary', type: 'submit' }, editing ? '수정 완료' : '등록');
+
+        async function handleSubmit(event) {
+            event.preventDefault();
+            errorBox.textContent = '';
+            submit.disabled = true;
+
+            const body = editing
+                ? { title: title.value, content: content.value }
+                : { title: title.value, content: content.value, author: author.value };
+
+            try {
+                const saved = await request(editing ? `${API}/${id}` : API, {
+                    method: editing ? 'PUT' : 'POST',
+                    body: JSON.stringify(body),
+                });
+                go(`/posts/${saved.id}`);
+            } catch (error) {
+                errorBox.textContent = error.message; // 백엔드 검증 메시지 표시
+                submit.disabled = false;
+            }
+        }
+
+        show(
+            el('div', { class: 'toolbar' }, el('h1', {}, editing ? '게시글 수정' : '새 게시글')),
+            el('form', { class: 'card', onsubmit: handleSubmit },
+                el('label', {}, '제목', title),
+                el('label', {}, '작성자', author),
+                el('label', {}, '내용', content),
+                errorBox,
+                el('div', { class: 'actions' },
+                    el('a', { class: 'btn', href: editing ? `#/posts/${id}` : '#/' }, '취소'),
+                    el('span', { class: 'spacer' }),
+                    submit))
+        );
+    }
+
+    // ---------- 라우팅 ----------
+    // #/            목록
+    // #/?page=1     목록 2페이지
+    // #/?type=TITLE&keyword=spring  제목 검색
+    // #/new         새 글
+    // #/posts/1     상세
+    // #/posts/1/edit 수정
+    function route() {
+        const hash = location.hash.slice(1) || '/';
+        const [path, query] = hash.split('?');
+        const params = new URLSearchParams(query);
+        let match;
+
+        if (path === '/') {
+            const type = params.get('type');
+            return renderList({
+                page: Number(params.get('page')) || 0,
+                type: SEARCH_TYPES.some(([value]) => value === type) ? type : 'ALL',
+                keyword: (params.get('keyword') ?? '').trim(),
+            });
+        }
+        if (path === '/new') return renderForm();
+        if ((match = path.match(/^\/posts\/(\d+)$/))) return renderDetail(match[1]);
+        if ((match = path.match(/^\/posts\/(\d+)\/edit$/))) return renderForm(match[1]);
+
+        showError(new Error('페이지를 찾을 수 없습니다.'));
+    }
+
+    window.addEventListener('hashchange', route);
+    route();
+</script>
+</body>
+</html>

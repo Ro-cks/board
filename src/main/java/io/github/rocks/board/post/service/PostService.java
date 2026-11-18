@@ -1,9 +1,6 @@
 package io.github.rocks.board.post.service;
 
-import io.github.rocks.board.post.dto.PostCreateRequest;
-import io.github.rocks.board.post.dto.PostResponse;
-import io.github.rocks.board.post.dto.PostSummaryResponse;
-import io.github.rocks.board.post.dto.PostUpdateRequest;
+import io.github.rocks.board.post.dto.*;
 import io.github.rocks.board.post.entity.Post;
 import io.github.rocks.board.post.exception.PostNotFoundException;
 import io.github.rocks.board.post.repository.PostRepository;
@@ -55,9 +52,21 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
-    public Page<PostSummaryResponse> findAll(Pageable pageable) {
+    public Page<PostSummaryResponse> findAll(PostSearchType type, String keyword, Pageable pageable) {
+        Page<Post> posts;
 
-        return postRepository.findAll(pageable)
-                .map(PostSummaryResponse::from);
+        if (keyword == null || keyword.isBlank()) {
+            posts = postRepository.findAll(pageable);
+        } else {
+            keyword = keyword.strip();
+
+            posts = switch (type) {
+                case TITLE -> postRepository.findByTitleContaining(keyword, pageable);
+                case CONTENT -> postRepository.findByContentContaining(keyword, pageable);
+                case ALL -> postRepository.findByTitleContainingOrContentContaining(keyword, keyword, pageable);
+            };
+        }
+
+        return posts.map(PostSummaryResponse::from);
     }
 }
